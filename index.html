@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BugSlayer — A powerful developer-focused to-do list for tracking bugs, features, and tasks." />
+  <meta name="theme-color" content="#6366f1" />
+
+  <title>BugSlayer · To-Do List</title>
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐛</text></svg>" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles/main.css" />
+  <link rel="stylesheet" href="styles/animations.css" />
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body>
+
+<!-- =============================================
+     APP LAYOUT
+     ============================================= -->
+<div class="app-layout">
+
+  <!-- =================== TOPBAR =================== -->
+  <header class="topbar">
+    <!-- Brand -->
+    <div class="topbar-brand">
+      <span class="brand-logo">🐛</span>
+      <span><span class="brand-name">Bug</span>Slayer</span>
+      <span class="brand-sub">v1.0</span>
+    </div>
+
+    <!-- Search -->
+    <div class="topbar-search">
+      <span class="search-icon">🔍</span>
+      <input
+        type="search"
+        id="searchInput"
+        placeholder="Search tasks… (Ctrl+K)"
+        autocomplete="off"
+        spellcheck="false"
+      />
+    </div>
+
+    <!-- Actions -->
+    <div class="topbar-actions">
+      <!-- Mobile sidebar toggle -->
+      <button class="btn-icon-round" id="mobileSidebarToggle" title="Toggle sidebar" style="display:none">
+        ☰
+      </button>
+
+      <!-- Export -->
+      <button class="btn-ghost" id="exportBtn" title="Export tasks as JSON">
+        <span>⬇️</span> Export
+      </button>
+
+      <!-- Import -->
+      <button class="btn-ghost" id="importBtn" title="Import tasks from JSON">
+        <span>⬆️</span> Import
+      </button>
+      <input type="file" id="importFile" accept=".json" style="display:none" />
+
+      <!-- Clear completed -->
+      <button class="btn-ghost" id="clearCompletedBtn" title="Clear all completed tasks">
+        🧹 Clear Done
+      </button>
+
+      <!-- Theme toggle -->
+      <button class="btn-icon-round" id="themeToggle" title="Toggle theme">☀️</button>
+    </div>
+  </header>
+
+  <!-- =================== SIDEBAR =================== -->
+  <aside class="sidebar" id="sidebar">
+
+    <!-- Filters -->
+    <nav>
+      <div class="sidebar-section-title">📋 Filters</div>
+      <ul class="filter-tabs" role="tablist">
+        <li>
+          <button class="filter-tab active" data-filter="all" role="tab">
+            <span class="tab-icon">🗂️</span>
+            All Tasks
+            <span class="filter-count">0</span>
+          </button>
+        </li>
+        <li>
+          <button class="filter-tab" data-filter="active" role="tab">
+            <span class="tab-icon">⚡</span>
+            Active
+            <span class="filter-count">0</span>
+          </button>
+        </li>
+        <li>
+          <button class="filter-tab" data-filter="today" role="tab">
+            <span class="tab-icon">📅</span>
+            Due Today
+            <span class="filter-count">0</span>
+          </button>
+        </li>
+        <li>
+          <button class="filter-tab" data-filter="critical" role="tab">
+            <span class="tab-icon">🔴</span>
+            Critical
+            <span class="filter-count">0</span>
+          </button>
+        </li>
+        <li>
+          <button class="filter-tab" data-filter="overdue" role="tab">
+            <span class="tab-icon">⚠️</span>
+            Overdue
+            <span class="filter-count">0</span>
+          </button>
+        </li>
+        <li>
+          <button class="filter-tab" data-filter="completed" role="tab">
+            <span class="tab-icon">✅</span>
+            Completed
+            <span class="filter-count">0</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Categories -->
+    <div>
+      <div class="sidebar-section-title">🏷️ Categories</div>
+      <ul id="categoryList"></ul>
+
+      <!-- Add category -->
+      <form class="add-category-form" id="addCategoryForm" style="margin-top:0.5rem">
+        <input
+          type="text"
+          id="newCategoryInput"
+          placeholder="New category…"
+          maxlength="32"
+          autocomplete="off"
+        />
+        <button type="submit" title="Add category">+</button>
+      </form>
+    </div>
+
+    <!-- Bottom actions -->
+    <div style="margin-top:auto">
+      <div class="sidebar-section-title">⚙️ Danger Zone</div>
+      <button class="btn-danger" style="width:100%;font-size:0.82rem;padding:0.45rem 0.75rem;"
+        onclick="if(confirm('Delete ALL tasks? This cannot be undone.')) App.deleteAll()">
+        🗑️ Delete All Tasks
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- =================== MAIN =================== -->
+  <main class="main-content">
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <span class="stat-icon">📋</span>
+        <div class="stat-info">
+          <div class="stat-value" id="statTotal">0</div>
+          <div class="stat-label">Total</div>
+        </div>
+      </div>
+      <div class="stat-card stat-active">
+        <span class="stat-icon">⚡</span>
+        <div class="stat-info">
+          <div class="stat-value" id="statActive">0</div>
+          <div class="stat-label">Active</div>
+        </div>
+      </div>
+      <div class="stat-card stat-done">
+        <span class="stat-icon">✅</span>
+        <div class="stat-info">
+          <div class="stat-value" id="statCompleted">0</div>
+          <div class="stat-label">Completed</div>
+        </div>
+      </div>
+      <div class="stat-card stat-overdue">
+        <span class="stat-icon">⚠️</span>
+        <div class="stat-info">
+          <div class="stat-value" id="statOverdue">0</div>
+          <div class="stat-label">Overdue</div>
+        </div>
+      </div>
+      <div class="stat-card stat-critical">
+        <span class="stat-icon">🔴</span>
+        <div class="stat-info">
+          <div class="stat-value" id="statCritical">0</div>
+          <div class="stat-label">Critical</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-wrap">
+      <span class="progress-label">🗡️ Bugs Slayed</span>
+      <div class="progress-track">
+        <div class="progress-bar-fill" id="progressBar"></div>
+      </div>
+      <span class="progress-pct" id="progressPct">0%</span>
+    </div>
+
+    <!-- Add Task Panel -->
+    <div class="add-task-panel">
+      <button
+        class="add-task-toggle"
+        id="toggleAddForm"
+        aria-expanded="false"
+        aria-controls="addTaskFormWrap"
+        onclick="
+          const wrap = document.getElementById('addTaskFormWrap');
+          const open = wrap.classList.toggle('open');
+          this.setAttribute('aria-expanded', open);
+        "
+      >
+        <span class="toggle-plus">+</span>
+        <span>Log a New Bug / Task</span>
+        <span style="margin-left:auto;font-size:0.78rem;color:var(--text-muted);font-weight:400">
+          Click to expand
+        </span>
+      </button>
+
+      <div class="add-task-form-wrap" id="addTaskFormWrap">
+        <form id="addTaskForm" novalidate>
+
+          <!-- Title -->
+          <div>
+            <label for="taskTitle">Task Title <span style="color:var(--danger)">*</span></label>
+            <input
+              type="text"
+              id="taskTitle"
+              name="title"
+              placeholder="e.g. Fix login null pointer exception…"
+              maxlength="140"
+              required
+              autocomplete="off"
+            />
+          </div>
+
+          <!-- Description -->
+          <div>
+            <label for="taskDesc">Description</label>
+            <textarea
+              id="taskDesc"
+              name="description"
+              placeholder="Steps to reproduce, context, references…"
+              rows="2"
+            ></textarea>
+          </div>
+
+          <!-- Row: Priority + Category + Due Date -->
+          <div class="form-row-3">
+            <div>
+              <label for="taskPriority">Priority</label>
+              <select id="taskPriority" name="priority">
+                <option value="critical">🔴 Critical</option>
+                <option value="high">🟠 High</option>
+                <option value="medium" selected>🟡 Medium</option>
+                <option value="low">🟢 Low</option>
+              </select>
+            </div>
+            <div>
+              <label for="taskCategory">Category</label>
+              <select id="taskCategory" name="category"></select>
+            </div>
+            <div>
+              <label for="taskDueDate">Due Date</label>
+              <input type="date" id="taskDueDate" name="dueDate" />
+            </div>
+          </div>
+
+          <!-- Tags -->
+          <div>
+            <label for="taskTags">Tags <span style="font-weight:400;color:var(--text-muted)">(comma-separated)</span></label>
+            <input
+              type="text"
+              id="taskTags"
+              name="tags"
+              placeholder="e.g. auth, backend, urgent"
+              autocomplete="off"
+            />
+          </div>
+
+          <!-- Actions -->
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn-secondary"
+              onclick="document.getElementById('addTaskForm').reset()"
+            >
+              Reset
+            </button>
+            <button type="submit" class="btn-primary">
+              🐛 Log Bug
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <!-- Task Controls -->
+    <div class="task-controls">
+      <div class="controls-left">
+        <span class="controls-label">Sort by:</span>
+        <select class="sort-select" id="sortBy">
+          <option value="createdAt">Date Created</option>
+          <option value="updatedAt">Last Updated</option>
+          <option value="priority">Priority</option>
+          <option value="dueDate">Due Date</option>
+          <option value="title">Title A–Z</option>
+        </select>
+        <button class="btn-sort-order" id="sortOrder" title="Toggle sort order">↓</button>
+      </div>
+      <div class="controls-right">
+        <span class="task-count-label" id="taskCountLabel"></span>
+      </div>
+    </div>
+
+    <!-- Task List -->
+    <div id="taskList" role="list" aria-label="Task list"></div>
+
+  </main>
+</div>
+
+<!-- =============================================
+     EDIT MODAL
+     ============================================= -->
+<div id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalHeading">
+  <div class="modal">
+
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalHeading">
+        ✏️ Edit Task
+      </h2>
+      <button class="modal-close" id="modalClose" aria-label="Close modal">×</button>
+    </div>
+
+    <div class="modal-body">
+      <form id="editTaskForm" novalidate>
+
+        <!-- Title -->
+        <div>
+          <label for="editTitle">Task Title <span style="color:var(--danger)">*</span></label>
+          <input
+            type="text"
+            id="editTitle"
+            name="title"
+            maxlength="140"
+            required
+            autocomplete="off"
+          />
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label for="editDescription">Description</label>
+          <textarea
+            id="editDescription"
+            name="description"
+            rows="3"
+          ></textarea>
+        </div>
+
+        <!-- Row: Priority + Category -->
+        <div class="form-row">
+          <div>
+            <label for="editPriority">Priority</label>
+            <select id="editPriority" name="priority">
+              <option value="critical">🔴 Critical</option>
+              <option value="high">🟠 High</option>
+              <option value="medium">🟡 Medium</option>
+              <option value="low">🟢 Low</option>
+            </select>
+          </div>
+          <div>
+            <label for="editCategory">Category</label>
+            <select id="editCategory" name="category"></select>
+          </div>
+        </div>
+
+        <!-- Row: Due Date + Tags -->
+        <div class="form-row">
+          <div>
+            <label for="editDueDate">Due Date</label>
+            <input type="date" id="editDueDate" name="dueDate" />
+          </div>
+          <div>
+            <label for="editTags">Tags <span style="font-weight:400;color:var(--text-muted)">(comma-separated)</span></label>
+            <input
+              type="text"
+              id="editTags"
+              name="tags"
+              placeholder="e.g. auth, backend"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" id="modalCancelBtn"
+        onclick="App.cancelEdit && App.cancelEdit(); document.getElementById('modalOverlay').classList.remove('open'); document.body.style.overflow='';">
+        Cancel
+      </button>
+      <button type="submit" form="editTaskForm" class="btn-primary">
+        💾 Save Changes
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- =============================================
+     TOAST CONTAINER
+     ============================================= -->
+<div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+<!-- =============================================
+     SCRIPTS (order matters)
+     ============================================= -->
+<script src="js/storage.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/filters.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+
+<!-- Mobile sidebar toggle logic -->
+<script>
+  (function () {
+    const toggleBtn = document.getElementById('mobileSidebarToggle');
+    const sidebar   = document.getElementById('sidebar');
+
+    // Show mobile toggle on small screens
+    const mq = window.matchMedia('(max-width: 640px)');
+    const onMQ = (e) => {
+      if (toggleBtn) toggleBtn.style.display = e.matches ? 'flex' : 'none';
+    };
+    mq.addEventListener('change', onMQ);
+    onMQ(mq);
+
+    toggleBtn?.addEventListener('click', () => {
+      sidebar.classList.toggle('mobile-open');
+    });
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', (e) => {
+      if (
+        mq.matches &&
+        sidebar.classList.contains('mobile-open') &&
+        !sidebar.contains(e.target) &&
+        e.target !== toggleBtn
+      ) {
+        sidebar.classList.remove('mobile-open');
+      }
+    });
+
+    // Update task count label reactively
+    const observer = new MutationObserver(() => {
+      const cards = document.querySelectorAll('.task-card');
+      const label = document.getElementById('taskCountLabel');
+      if (label) {
+        label.textContent = cards.length > 0
+          ? `${cards.length} task${cards.length !== 1 ? 's' : ''} shown`
+          : '';
+      }
+    });
+
+    const taskList = document.getElementById('taskList');
+    if (taskList) {
+      observer.observe(taskList, { childList: true });
+    }
+  })();
+</script>
+
+</body>
+</html>
