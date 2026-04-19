@@ -1,0 +1,36 @@
+{
+  "name": "bugslayer-todo",
+  "version": "1.0.0",
+  "description": "BugSlayer — A developer-focused to-do list for tracking bugs, features, and tasks.",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve . --listen 8080",
+    "dev": "npx serve . --listen 3000 --cors",
+    "preview": "npx serve . --listen 4173",
+    "deploy:vercel": "npx vercel --prod",
+    "deploy:netlify": "npx netlify-cli deploy --prod --dir .",
+    "lint": "echo 'No build step — pure HTML/CSS/JS project'",
+    "test": "echo 'No test runner configured yet'"
+  },
+  "keywords": [
+    "todo",
+    "task-manager",
+    "bug-tracker",
+    "developer-tools",
+    "vanilla-js",
+    "no-dependencies"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/bugslayer.git"
+  },
+  "homepage": ".",
+  "devDependencies": {
+    "serve": "^14.2.3"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
